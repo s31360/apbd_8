@@ -71,7 +71,19 @@ namespace Tutorial8.Controllers
             return StatusCode(500, "Unexpected error.");
         }
 
+        [HttpDelete("/api/clients/{id}/trips/{tripId}")]
+        public async Task<IActionResult> UnregisterClientFromTrip(int id, int tripId)
+        {
+            var result = await _tripsService.UnregisterClientFromTripAsync(id, tripId);
 
+            if (result == null)
+                return Ok("Client successfully unregistered from the trip.");
+
+            if (result == "Registration not found")
+                return NotFound("Client is not registered for this trip.");
+
+            return StatusCode(500, "Unexpected error occurred.");
+        }
 
     }
 }

@@ -186,6 +186,24 @@ public async Task<string?> RegisterClientForTripAsync(int clientId, int tripId)
     return null; 
 }
 
+public async Task<string?> UnregisterClientFromTripAsync(int clientId, int tripId)
+{
+    using var conn = new SqlConnection(_connectionString);
+    await conn.OpenAsync();
 
+    var checkCmd = new SqlCommand("SELECT 1 FROM Client_Trip WHERE IdClient = @IdClient AND IdTrip = @IdTrip", conn);
+    checkCmd.Parameters.AddWithValue("@IdClient", clientId);
+    checkCmd.Parameters.AddWithValue("@IdTrip", tripId);
+    var exists = await checkCmd.ExecuteScalarAsync();
+    if (exists == null)
+        return "Registration not found";
+
+    var deleteCmd = new SqlCommand("DELETE FROM Client_Trip WHERE IdClient = @IdClient AND IdTrip = @IdTrip", conn);
+    deleteCmd.Parameters.AddWithValue("@IdClient", clientId);
+    deleteCmd.Parameters.AddWithValue("@IdTrip", tripId);
+    await deleteCmd.ExecuteNonQueryAsync();
+
+    return null; 
+}
 
 }

@@ -9,5 +9,7 @@ public interface ITripsService
     Task<int> CreateClientAsync(CreateClientDTO dto);
     Task<string?> RegisterClientForTripAsync(int clientId, int tripId);
 
+    Task<string?> UnregisterClientFromTripAsync(int clientId, int tripId);
+
 
 }
