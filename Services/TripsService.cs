@@ -7,6 +7,10 @@ public class TripsService : ITripsService
 {
     private readonly string _connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=APBD;Integrated Security=True;";
     
+    /// <summary>
+    /// Retrieves all available trips along with associated country information.
+    /// </summary>
+    /// <returns>List of trips with basic details and countries.</returns>
     public async Task<List<TripDTO>> GetTrips()
     {
         var trips = new Dictionary<int, TripDTO>();
@@ -50,6 +54,11 @@ public class TripsService : ITripsService
         return trips.Values.ToList();
     }
 
+    /// <summary>
+    /// Retrieves all trips a client has registered for, including registration and payment information.
+    /// </summary>
+    /// <param name="clientId">Client ID.</param>
+    /// <returns>List of client's trips.</returns>
     public async Task<List<ClientTripDTO>> GetTripsByClientId(int clientId)
     {
         var trips = new Dictionary<int, ClientTripDTO>();
@@ -104,6 +113,11 @@ public class TripsService : ITripsService
         return trips.Values.ToList();
     }
     
+    /// <summary>
+    /// Converts an int date in format yyyyMMdd to DateTime.
+    /// </summary>
+    /// <param name="dateInt">Integer representing date as yyyyMMdd.</param>
+    /// <returns>DateTime or null if parsing fails.</returns>
     private DateTime? ParseIntToDate(int dateInt)
     {
         var dateStr = dateInt.ToString();
@@ -114,6 +128,12 @@ public class TripsService : ITripsService
         return null;
     }
     
+    
+    /// <summary>
+    /// Creates a new client in the database if PESEL is unique.
+    /// </summary>
+    /// <param name="dto">Client data transfer object.</param>
+    /// <returns>ID of the newly created client.</returns>
     public async Task<int> CreateClientAsync(CreateClientDTO dto)
     {
         using var conn = new SqlConnection(_connectionString);
@@ -141,6 +161,12 @@ public class TripsService : ITripsService
         return newId;
     }
 
+    /// <summary>
+    /// Registers a client for a trip if not already registered and if the trip has available capacity.
+    /// </summary>
+    /// <param name="clientId">ID of the client.</param>
+    /// <param name="tripId">ID of the trip.</param>
+    /// <returns>Null if successful, or a string describing the failure reason.</returns>
 public async Task<string?> RegisterClientForTripAsync(int clientId, int tripId)
 {
     using var conn = new SqlConnection(_connectionString);
@@ -186,6 +212,12 @@ public async Task<string?> RegisterClientForTripAsync(int clientId, int tripId)
     return null; 
 }
 
+    /// <summary>
+    /// Removes a client's registration from a trip if it exists.
+    /// </summary>
+    /// <param name="clientId">ID of the client.</param>
+    /// <param name="tripId">ID of the trip.</param>
+    /// <returns>Null if successful, or "Registration not found".</returns>
 public async Task<string?> UnregisterClientFromTripAsync(int clientId, int tripId)
 {
     using var conn = new SqlConnection(_connectionString);
