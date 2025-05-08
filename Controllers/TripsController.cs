@@ -29,7 +29,23 @@ namespace Tutorial8.Controllers
             //  return NotFound();
             // }
             // var trip = ... GetTrip(id);
-            return Ok();
+            // return Ok();
+            
+            var trips = await _tripsService.GetTrips();
+            return Ok(trips);
+        }
+        
+        [HttpGet("/api/clients/{id}/trips")]
+        public async Task<IActionResult> GetTripsForClient(int id)
+        {
+            var trips = await _tripsService.GetTripsByClientId(id);
+
+            if (trips.Count == 0)
+            {
+                return NotFound($"No trips found for client with ID {id}.");
+            }
+
+            return Ok(trips);
         }
     }
 }
