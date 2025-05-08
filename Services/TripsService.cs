@@ -141,5 +141,51 @@ public class TripsService : ITripsService
         return newId;
     }
 
-    
+public async Task<string?> RegisterClientForTripAsync(int clientId, int tripId)
+{
+    using var conn = new SqlConnection(_connectionString);
+    await conn.OpenAsync();
+
+    var clientCheckCmd = new SqlCommand("SELECT 1 FROM Client WHERE IdClient = @IdClient", conn);
+    clientCheckCmd.Parameters.AddWithValue("@IdClient", clientId);
+    var clientExists = await clientCheckCmd.ExecuteScalarAsync();
+    if (clientExists == null)
+        return "Client not found";
+
+    var tripCheckCmd = new SqlCommand("SELECT MaxPeople FROM Trip WHERE IdTrip = @IdTrip", conn);
+    tripCheckCmd.Parameters.AddWithValue("@IdTrip", tripId);
+    var maxPeopleObj = await tripCheckCmd.ExecuteScalarAsync();
+    if (maxPeopleObj == null)
+        return "Trip not found";
+
+    var maxPeople = (int)maxPeopleObj;
+
+    var checkExistingCmd = new SqlCommand("SELECT 1 FROM Client_Trip WHERE IdClient = @IdClient AND IdTrip = @IdTrip", conn);
+    checkExistingCmd.Parameters.AddWithValue("@IdClient", clientId);
+    checkExistingCmd.Parameters.AddWithValue("@IdTrip", tripId);
+    var alreadyRegistered = await checkExistingCmd.ExecuteScalarAsync();
+    if (alreadyRegistered != null)
+        return "Client already registered";
+
+    var countCmd = new SqlCommand("SELECT COUNT(1) FROM Client_Trip WHERE IdTrip = @IdTrip", conn);
+    countCmd.Parameters.AddWithValue("@IdTrip", tripId);
+    var currentParticipants = (int)await countCmd.ExecuteScalarAsync();
+
+    if (currentParticipants >= maxPeople)
+        return "Max participants reached";
+
+    var registeredAt = DateTime.Now.ToString("yyyyMMdd");
+    var insertCmd = new SqlCommand(@"
+        INSERT INTO Client_Trip (IdClient, IdTrip, RegisteredAt)
+        VALUES (@IdClient, @IdTrip, @RegisteredAt)", conn);
+    insertCmd.Parameters.AddWithValue("@IdClient", clientId);
+    insertCmd.Parameters.AddWithValue("@IdTrip", tripId);
+    insertCmd.Parameters.AddWithValue("@RegisteredAt", registeredAt);
+
+    await insertCmd.ExecuteNonQueryAsync();
+    return null; 
+}
+
+
+
 }

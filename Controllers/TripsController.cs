@@ -47,5 +47,31 @@ namespace Tutorial8.Controllers
 
             return Ok(trips);
         }
+        
+        [HttpPut("/api/clients/{id}/trips/{tripId}")]
+        public async Task<IActionResult> RegisterClientForTrip(int id, int tripId)
+        {
+            var result = await _tripsService.RegisterClientForTripAsync(id, tripId);
+
+            if (result is null)
+                return Ok("Client successfully registered for the trip.");
+
+            if (result == "Client not found")
+                return NotFound("Client not found.");
+
+            if (result == "Trip not found")
+                return NotFound("Trip not found.");
+
+            if (result == "Client already registered")
+                return Conflict("Client already registered for this trip.");
+
+            if (result == "Max participants reached")
+                return Conflict("Maximum number of participants reached.");
+
+            return StatusCode(500, "Unexpected error.");
+        }
+
+
+
     }
 }
