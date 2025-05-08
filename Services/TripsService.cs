@@ -114,4 +114,32 @@ public class TripsService : ITripsService
         return null;
     }
     
+    public async Task<int> CreateClientAsync(CreateClientDTO dto)
+    {
+        using var conn = new SqlConnection(_connectionString);
+        await conn.OpenAsync();
+
+        var checkCmd = new SqlCommand("SELECT COUNT(1) FROM Client WHERE Pesel = @Pesel", conn);
+        checkCmd.Parameters.AddWithValue("@Pesel", dto.Pesel);
+        var exists = (int)await checkCmd.ExecuteScalarAsync() > 0;
+
+        if (exists)
+            throw new InvalidOperationException("Client with the same PESEL already exists.");
+
+        var insertCmd = new SqlCommand(@"
+        INSERT INTO Client (FirstName, LastName, Email, Telephone, Pesel)
+        OUTPUT INSERTED.IdClient
+        VALUES (@FirstName, @LastName, @Email, @Telephone, @Pesel)", conn);
+
+        insertCmd.Parameters.AddWithValue("@FirstName", dto.FirstName);
+        insertCmd.Parameters.AddWithValue("@LastName", dto.LastName);
+        insertCmd.Parameters.AddWithValue("@Email", dto.Email);
+        insertCmd.Parameters.AddWithValue("@Telephone", dto.Telephone);
+        insertCmd.Parameters.AddWithValue("@Pesel", dto.Pesel);
+
+        var newId = (int)await insertCmd.ExecuteScalarAsync();
+        return newId;
+    }
+
+    
 }
